@@ -2,7 +2,14 @@ const CACHE_NAME = 'calculadora-financiera-v1';
 const FILES_TO_CACHE = [
   './index.html',
   './manifest.json',
+  './icons/icon-48.png',
+  './icons/icon-72.png',
+  './icons/icon-96.png',
+  './icons/icon-128.png',
+  './icons/icon-144.png',
+  './icons/icon-152.png',
   './icons/icon-192.png',
+  './icons/icon-384.png',
   './icons/icon-512.png'
 ];
 
