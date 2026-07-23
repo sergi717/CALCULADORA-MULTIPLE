@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Calculadora Financiera</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#17203B">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+:root{
+  --bg: #F1F4F6;
+  --surface: #FFFFFF;
+  --ink: #17203B;
+  --ink-soft: #5C6478;
+  --ink-faint: #9399AB;
+  --line: #E3E7ED;
+  --growth: #0F766E;
+  --growth-soft: #E3F3F1;
+  --growth-deep: #0B5750;
+  --home: #C1752B;
+  --home-soft: #FBEEDF;
+  --home-deep: #955A1F;
+  --cons: #7C8AA0;
+  --cons-soft: #EEF0F3;
+  --opt: #C9963A;
+  --opt-soft: #FBF1DE;
+  --neutral-line: #C7CCD6;
+  --danger: #B14343;
+  --danger-soft: #FBEAEA;
+  --psi: #7B4B94;
+  --psi-soft: #F3EAF7;
+  --psi-deep: #5B3570;
+  --radius: 18px;
+  --shadow: 0 1px 2px rgba(23,32,59,0.04), 0 8px 24px rgba(23,32,59,0.06);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display:flex;
+  justify-content:center;
+}
+
+#app{
+  width:100%;
+  max-width: 560px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  background: var(--bg);
+  position:relative;
+}
+
+header{
+  padding: 28px 24px 18px;
+  position:sticky;
+  top:0;
+  background: var(--bg);
+  z-index:5;
+}
+.eyebrow{
+  font-size:12px;
+  letter-spacing: 0.08em;
+  text-transform:uppercase;
+  color: var(--ink-faint);
+  font-weight:600;
+  margin:0 0 4px;
+}
+h1{
+  font-family:'Space Grotesk', sans-serif;
+  font-size:26px;
+  font-weight:700;
+  margin:0;
+  letter-spacing:-0.01em;
+}
+.accent-bar{display:flex; gap:6px; margin-top:14px;}
+.accent-bar span{height:4px; border-radius:2px; flex:1; transition: opacity .3s ease;}
+.accent-bar .g{background:var(--growth);}
+.accent-bar .h{background:var(--home);}
+.accent-bar .p{background:var(--psi);}
+
+main{ flex:1; padding: 4px 20px 110px; overflow-y:auto; }
+.panel{display:none; animation: fadeIn .35s ease;}
+.panel.active{display:block;}
+@keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+.card{ background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 22px; margin-bottom: 16px; }
+.card h2{ font-family:'Space Grotesk', sans-serif; font-size:15px; font-weight:600; margin:0 0 18px; color: var(--ink-soft); text-transform:uppercase; letter-spacing:0.04em; }
+.card p.hint{ font-size:12px; color:var(--ink-faint); margin:-10px 0 18px; line-height:1.4; }
+
+.field{margin-bottom:20px;}
+.field:last-child{margin-bottom:4px;}
+.field-label{margin-bottom:8px;}
+.field-label label{ font-size:13.5px; font-weight:600; color: var(--ink); }
+
+.input-combo{ display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+.numfield{
+  flex:1;
+  border:1.5px solid var(--line);
+  border-radius:10px;
+  padding:9px 12px;
+  font-family:'Space Grotesk', sans-serif;
+  font-size:16px;
+  font-weight:600;
+  color:var(--ink);
+  background:var(--bg);
+  width:100%;
+  -moz-appearance: textfield;
+}
+.numfield::-webkit-outer-spin-button, .numfield::-webkit-inner-spin-button{-webkit-appearance:none; margin:0;}
+.numfield:focus{outline:none; border-color: var(--growth);}
+.tab-home .numfield:focus{border-color: var(--home);}
+.tab-psi .numfield:focus{border-color: var(--psi);}
+.unit{ font-size:13px; font-weight:600; color:var(--ink-faint); min-width:18px; }
+
+.selectfield{
+  width:100%;
+  border:1.5px solid var(--line);
+  border-radius:10px;
+  padding:10px 12px;
+  font-family:'Inter', sans-serif;
+  font-size:14.5px;
+  font-weight:600;
+  color:var(--ink);
+  background:var(--bg);
+  margin-bottom:10px;
+}
+.selectfield:focus{outline:none; border-color: var(--psi);}
+
+input[type=range]{ -webkit-appearance:none; width:100%; height:6px; border-radius:3px; background: var(--line); outline:none; }
+.tab-growth input[type=range]{accent-color: var(--growth);}
+.tab-home input[type=range]{accent-color: var(--home);}
+.tab-psi input[type=range]{accent-color: var(--psi);}
+input[type=range]::-webkit-slider-thumb{ -webkit-appearance:none; width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--growth); box-shadow:0 1px 4px rgba(0,0,0,0.2); cursor:pointer; }
+.tab-home input[type=range]::-webkit-slider-thumb{border-color: var(--home);}
+.tab-psi input[type=range]::-webkit-slider-thumb{border-color: var(--psi);}
+
+.segmented{ display:flex; background:var(--bg); border-radius:10px; padding:3px; gap:3px; }
+.segmented button{ flex:1; border:none; background:transparent; padding:9px 6px; font-family:'Inter'; font-size:13px; font-weight:600; color:var(--ink-soft); border-radius:8px; cursor:pointer; transition: all .2s ease; }
+.segmented button.active{ background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(0,0,0,0.08); }
+
+.result-hero{ border-radius: var(--radius); padding:24px 22px; margin-bottom:16px; color:#fff; position:relative; overflow:hidden; }
+.tab-growth .result-hero{background: linear-gradient(135deg, var(--growth-deep), var(--growth));}
+.tab-home .result-hero{background: linear-gradient(135deg, var(--home-deep), var(--home));}
+.tab-psi .result-hero{background: linear-gradient(135deg, var(--psi-deep), var(--psi));}
+.tab-psi .result-hero.negative{background: linear-gradient(135deg, #7A2F2F, var(--danger));}
+.result-hero .label{ font-size:12.5px; text-transform:uppercase; letter-spacing:0.06em; opacity:0.85; font-weight:600; margin:0 0 6px; }
+.result-hero .value{ font-family:'Space Grotesk', sans-serif; font-size:34px; font-weight:700; margin:0; letter-spacing:-0.01em; }
+.result-hero .sub{ font-size:13px; opacity:0.85; margin:10px 0 0; }
+
+.scenario-row{display:flex; gap:12px; margin-bottom:16px;}
+.scenario{ flex:1; border-radius:14px; padding:14px; box-shadow:var(--shadow); background:var(--surface); border-top:3px solid transparent; }
+.scenario.conservative{border-top-color:var(--cons);}
+.scenario.optimistic{border-top-color:var(--opt);}
+.s-label{font-size:11px; text-transform:uppercase; letter-spacing:.03em; color:var(--ink-faint); font-weight:600; margin:0 0 2px;}
+.s-tae{font-size:11.5px; color:var(--ink-soft); margin:0 0 6px; font-weight:600;}
+.s-value{font-family:'Space Grotesk', sans-serif; font-size:16.5px; font-weight:700; margin:0;}
+.scenario.conservative .s-value{color:var(--cons);}
+.scenario.optimistic .s-value{color:var(--opt);}
+
+.stat-row{display:flex; gap:12px; margin-bottom:16px;}
+.stat{ flex:1; background:var(--surface); border-radius:14px; padding:14px 14px; box-shadow: var(--shadow); }
+.stat .k{font-size:11.5px; color:var(--ink-faint); font-weight:600; text-transform:uppercase; letter-spacing:0.03em; margin:0 0 4px;}
+.stat .v{font-family:'Space Grotesk', sans-serif; font-size:16.5px; font-weight:700; margin:0;}
+
+.chart-wrap{background:var(--surface); border-radius:var(--radius); padding:20px 18px 8px; box-shadow:var(--shadow); margin-bottom:16px;}
+.chart-wrap h3{font-family:'Space Grotesk'; font-size:13.5px; font-weight:600; color:var(--ink-soft); margin:0 0 12px; text-transform:uppercase; letter-spacing:0.03em;}
+svg{width:100%; height:auto; display:block;}
+.legend{display:flex; flex-wrap:wrap; gap:12px 16px; margin-top:10px; padding-bottom:14px;}
+.legend-item{display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--ink-soft); font-weight:500;}
+.legend-dot{width:9px; height:9px; border-radius:50%; flex-shrink:0;}
+.legend-dash{width:12px; height:2px; flex-shrink:0;}
+
+.note{font-size:12.5px; color:var(--ink-faint); line-height:1.5; padding:0 4px;}
+
+.debtbar-track{ position:relative; height:16px; border-radius:8px; background:var(--bg); margin:6px 0 8px; overflow:visible; }
+.debtbar-seg{ position:absolute; top:0; height:100%; transition: width .2s ease, left .2s ease; }
+.debtbar-existing{ background:var(--ink-faint); left:0; border-radius:8px 0 0 8px; }
+.debtbar-new{ background:var(--home); }
+.debtbar-new.over{ background:var(--danger); }
+.debtbar-marker{ position:absolute; top:-5px; bottom:-5px; width:2px; background:var(--ink); opacity:0.55; }
+.debtbar-caption{ display:flex; justify-content:space-between; font-size:11px; color:var(--ink-faint); font-weight:600; margin-bottom:4px; }
+
+.verdict{ border-radius:12px; padding:12px 14px; font-size:13px; font-weight:600; line-height:1.4; margin-top:4px; background:var(--bg); color:var(--ink-soft); }
+.verdict.ok{background:var(--growth-soft); color:var(--growth-deep);}
+.verdict.bad{background:var(--danger-soft); color:var(--danger);}
+
+nav.tabbar{
+  position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:560px;
+  background: rgba(255,255,255,0.92); backdrop-filter: blur(14px); border-top:1px solid var(--line);
+  display:flex; padding: 10px 14px calc(10px + env(safe-area-inset-bottom)); z-index:10;
+}
+.tabbtn{ flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; background:none; border:none; padding:6px 4px; cursor:pointer; color: var(--ink-faint); font-family:'Inter'; font-weight:600; font-size:11.5px; transition: color .2s ease; }
+.tabbtn svg{width:22px; height:22px;}
+.tabbtn.active[data-tab="growth"]{color:var(--growth);}
+.tabbtn.active[data-tab="home"]{color:var(--home);}
+.tabbtn.active[data-tab="psi"]{color:var(--psi);}
+
+header{position:relative;}
+.config-btn{
+  position:absolute; top:26px; right:20px;
+  display:flex; align-items:center; gap:6px;
+  background:var(--surface); border:none; border-radius:10px;
+  padding:8px 12px; box-shadow:var(--shadow); cursor:pointer;
+  font-family:'Inter'; font-size:12px; font-weight:700; color:var(--ink-soft);
+}
+.config-btn svg{width:15px; height:15px;}
+
+.overlay{ position:fixed; inset:0; background:rgba(23,32,59,0.55); z-index:50; display:none; align-items:flex-end; justify-content:center; }
+.overlay.active{display:flex;}
+.sheet{ background:var(--surface); width:100%; max-width:560px; border-radius:22px 22px 0 0; padding:22px 20px calc(20px + env(safe-area-inset-bottom)); max-height:85vh; overflow-y:auto; }
+.sheet-header{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.sheet-header h2{ font-family:'Space Grotesk'; font-size:18px; font-weight:700; margin:0; }
+.sheet-close{ background:var(--bg); border:none; width:30px; height:30px; border-radius:50%; font-size:16px; color:var(--ink-soft); cursor:pointer; }
+.textfield{ width:100%; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px; font-family:'Inter'; font-size:14.5px; font-weight:600; color:var(--ink); background:var(--bg); }
+.textfield:focus{outline:none; border-color:var(--ink);}
+.btn-primary{ width:100%; padding:13px; border:none; border-radius:12px; background:var(--ink); color:#fff; font-weight:700; font-size:14px; margin:12px 0 8px; cursor:pointer; }
+.btn-secondary{ width:100%; padding:11px; border:1.5px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink-soft); font-weight:700; font-size:13px; margin-bottom:18px; cursor:pointer; }
+.config-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:12px 14px; background:var(--bg); border-radius:12px; margin-bottom:10px; }
+.config-item .name{font-weight:700; font-size:13.5px; margin:0;}
+.config-item .date{font-size:11px; color:var(--ink-faint); margin:2px 0 0;}
+.config-actions{display:flex; gap:6px; flex-shrink:0;}
+.config-actions button{border:none;background:var(--surface);border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:var(--shadow);}
+.config-actions button.danger{color:var(--danger);}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button class="config-btn" id="btn-open-config">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      Oportunidades
+    </button>
+    <p class="eyebrow" id="eyebrow">Panel financiero</p>
+    <h1 id="pageTitle">Interés compuesto</h1>
+    <div class="accent-bar"><span class="g" id="barG"></span><span class="h" id="barH" style="opacity:0.25"></span><span class="p" id="barP" style="opacity:0.25"></span></div>
+  </header>
+
+  <main>
+    <!-- INTERÉS COMPUESTO -->
+    <section class="panel active tab-growth" id="panel-growth">
+      <div class="card">
+        <h2>Datos de partida</h2>
+
+        <div class="field">
+          <div class="field-label"><label>Capital inicial</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-capital" value="10000" step="500"><span class="unit">€</span></div>
+          <input type="range" id="r-capital" min="0" max="2000000" step="1000" value="10000">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Aportación mensual</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-aporte" value="200" step="25"><span class="unit">€</span></div>
+          <input type="range" id="r-aporte" min="0" max="3000" step="25" value="200">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Interés anual (TAE)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-tae" value="6" step="0.1"><span class="unit">%</span></div>
+          <input type="range" id="r-tae" min="0" max="15" step="0.1" value="6">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Horizonte</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-anios" value="20" step="1"><span class="unit">años</span></div>
+          <input type="range" id="r-anios" min="1" max="40" step="1" value="20">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Capitalización</label></div>
+          <div class="segmented" id="seg-cap">
+            <button class="active" data-v="12">Mensual</button>
+            <button data-v="1">Anual</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-hero">
+        <p class="label">Capital final · escenario base</p>
+        <p class="value" id="out-final">— €</p>
+        <p class="sub" id="out-sub">—</p>
+      </div>
+
+      <div class="scenario-row">
+        <div class="scenario conservative">
+          <p class="s-label">Conservador</p>
+          <p class="s-tae" id="s-cons-tae">3,0 %</p>
+          <p class="s-value" id="s-cons-val">— €</p>
+        </div>
+        <div class="scenario optimistic">
+          <p class="s-label">Optimista</p>
+          <p class="s-tae" id="s-opt-tae">9,0 %</p>
+          <p class="s-value" id="s-opt-val">— €</p>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><p class="k">Aportado</p><p class="v" id="out-aportado">— €</p></div>
+        <div class="stat"><p class="k">Intereses (base)</p><p class="v" id="out-intereses">— €</p></div>
+      </div>
+
+      <div class="chart-wrap">
+        <h3>Evolución del capital</h3>
+        <svg id="chart-growth" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dash" style="background:var(--neutral-line)"></span>Aportado</div>
+          <div class="legend-item"><span class="legend-dash" style="background:var(--cons)"></span>Conservador (−3%)</div>
+          <div class="legend-item"><span class="legend-dot" style="background:var(--growth)"></span>Base</div>
+          <div class="legend-item"><span class="legend-dash" style="background:var(--opt)"></span>Optimista (+3%)</div>
+        </div>
+      </div>
+      <p class="note">El escenario conservador y el optimista aplican ±3 puntos sobre la TAE base. Estimación orientativa: no considera inflación, comisiones ni fiscalidad.</p>
+    </section>
+
+    <!-- HIPOTECA -->
+    <section class="panel tab-home" id="panel-home">
+      <div class="card">
+        <h2>Datos del préstamo</h2>
+
+        <div class="field">
+          <div class="field-label"><label>Importe del préstamo</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-importe" value="180000" step="1000"><span class="unit">€</span></div>
+          <input type="range" id="r-importe" min="10000" max="2000000" step="1000" value="180000">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Tipo de interés (TIN)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-tin" value="3.2" step="0.05"><span class="unit">%</span></div>
+          <input type="range" id="r-tin" min="0.5" max="8" step="0.05" value="3.2">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Plazo</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-plazo" value="25" step="1"><span class="unit">años</span></div>
+          <input type="range" id="r-plazo" min="5" max="40" step="1" value="25">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Capacidad de endeudamiento</h2>
+        <p class="hint">Los bancos suelen limitar el conjunto de tus cuotas a un porcentaje de tus ingresos (35% por defecto).</p>
+
+        <div class="field">
+          <div class="field-label"><label>Ratio de endeudamiento permitido</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-ratio" value="35" step="1"><span class="unit">%</span></div>
+          <input type="range" id="r-ratio" min="0" max="60" step="1" value="35">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Salario neto mensual</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-salario" value="2000" step="50"><span class="unit">€</span></div>
+          <input type="range" id="r-salario" min="0" max="10000" step="50" value="2000">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Otros préstamos/deudas mensuales</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-otrosprestamos" value="0" step="25"><span class="unit">€</span></div>
+          <input type="range" id="r-otrosprestamos" min="0" max="3000" step="25" value="0">
+          <p class="hint" style="margin-top:8px;">Se resta de tu capacidad máxima antes de calcular esta hipoteca.</p>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Otros ingresos mensuales</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-otrosingresos" value="0" step="25"><span class="unit">€</span></div>
+          <input type="range" id="r-otrosingresos" min="0" max="5000" step="25" value="0">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>% de esos ingresos que computan</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-pctotros" value="50" step="5"><span class="unit">%</span></div>
+          <input type="range" id="r-pctotros" min="0" max="100" step="5" value="50">
+        </div>
+      </div>
+
+      <div class="result-hero">
+        <p class="label">Cuota mensual</p>
+        <p class="value" id="out-cuota">— €/mes</p>
+        <p class="sub" id="out-sub2">—</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><p class="k">Total pagado</p><p class="v" id="out-totalpagado">— €</p></div>
+        <div class="stat"><p class="k">Total intereses</p><p class="v" id="out-totalint">— €</p></div>
+      </div>
+
+      <div class="chart-wrap">
+        <h3>Capital vs. intereses pagados</h3>
+        <svg id="chart-home" viewBox="0 0 320 150" preserveAspectRatio="none"></svg>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot" style="background:var(--home)"></span>Capital pendiente</div>
+          <div class="legend-item"><span class="legend-dash" style="background:var(--ink-faint)"></span>Intereses acumulados</div>
+        </div>
+      </div>
+
+      <div class="chart-wrap">
+        <h3>Uso de tu capacidad de endeudamiento</h3>
+        <div class="debtbar-caption"><span>0%</span><span id="debtbar-limit-label">Límite 35%</span><span>100%</span></div>
+        <div class="debtbar-track" id="debtbar"></div>
+        <div class="stat-row">
+          <div class="stat"><p class="k">Ingresos computables</p><p class="v" id="out-ingresoscomp">— €</p></div>
+          <div class="stat"><p class="k">Ya comprometido</p><p class="v" id="out-comprometido">— €</p></div>
+        </div>
+        <div class="stat-row">
+          <div class="stat"><p class="k">Capacidad máxima</p><p class="v" id="out-capmax">— €</p></div>
+          <div class="stat"><p class="k">Disponible</p><p class="v" id="out-disponible">— €</p></div>
+        </div>
+        <div class="verdict" id="verdict">—</div>
+      </div>
+
+      <p class="note">Sistema de amortización francés (cuota fija). Estimación orientativa; no incluye seguros, comisiones de apertura ni vinculaciones del banco.</p>
+    </section>
+
+    <!-- PSI -->
+    <section class="panel tab-psi" id="panel-psi">
+      <div class="card">
+        <h2>Datos de la compraventa</h2>
+
+        <div class="field">
+          <div class="field-label"><label>Población / Comunidad Autónoma</label></div>
+          <select class="selectfield" id="sel-poblacion">
+            <option value="7">Andalucía</option>
+            <option value="8">Aragón</option>
+            <option value="8">Asturias</option>
+            <option value="8">Baleares</option>
+            <option value="6.5">Canarias</option>
+            <option value="9">Cantabria</option>
+            <option value="9">Castilla-La Mancha</option>
+            <option value="8">Castilla y León</option>
+            <option value="10">Cataluña</option>
+            <option value="9">Comunidad Valenciana</option>
+            <option value="8">Extremadura</option>
+            <option value="9">Galicia</option>
+            <option value="6" selected>Madrid</option>
+            <option value="8">Murcia</option>
+            <option value="6">Navarra</option>
+            <option value="4">País Vasco</option>
+            <option value="7">La Rioja</option>
+            <option value="6">Ceuta</option>
+            <option value="6">Melilla</option>
+          </select>
+          <p class="hint" style="margin:0 0 4px;">Fija automáticamente el ITP orientativo de la comunidad; puedes ajustarlo si tu caso tiene bonificaciones.</p>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Precio de compraventa</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-preciocv" value="120000" step="1000"><span class="unit">€</span></div>
+          <input type="range" id="r-preciocv" min="0" max="2000000" step="1000" value="120000">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Impuesto (ITP)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-itp" value="6" step="0.1"><span class="unit">%</span></div>
+          <input type="range" id="r-itp" min="0" max="15" step="0.1" value="6">
+          <p class="hint" id="hint-impuesto" style="margin:0;">≈ — €</p>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Gastos notaría, registro y gestión</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-notaria" value="2000" step="100"><span class="unit">€</span></div>
+          <input type="range" id="r-notaria" min="0" max="10000" step="100" value="2000">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Comisión PSI (sin IVA)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-comision-psi" placeholder="—" step="100"><span class="unit">€</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Comisión inmobiliaria (% s/ compraventa)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-comision-inmo" placeholder="—" step="0.1"><span class="unit">%</span></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Comisión broker (sin IVA)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-comision-broker" placeholder="—" step="100"><span class="unit">€</span></div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat"><p class="k">Comisión total (sin IVA)</p><p class="v" id="out-comisionsiniva">— €</p></div>
+          <div class="stat"><p class="k">Comisión total (con IVA)</p><p class="v" id="out-comisionconiva">— €</p></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Importe de la reforma</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-reforma" value="0" step="500"><span class="unit">€</span></div>
+          <input type="range" id="r-reforma" min="0" max="200000" step="500" value="0">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Explotación del alquiler</h2>
+
+        <div class="field">
+          <div class="field-label"><label>Facturación mensual</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-facturacion" value="800" step="25"><span class="unit">€</span></div>
+          <input type="range" id="r-facturacion" min="0" max="5000" step="25" value="800">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Suministros mensuales</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-suministros" value="80" step="10"><span class="unit">€</span></div>
+          <input type="range" id="r-suministros" min="0" max="1000" step="10" value="80">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>¿Usas agencia de alquiler?</label></div>
+          <div class="segmented" id="seg-agencia">
+            <button class="active" data-v="si">Sí</button>
+            <button data-v="no">No</button>
+          </div>
+        </div>
+
+        <div class="field" id="agencia-subfields">
+          <div class="field-label"><label>Tipo de comisión</label></div>
+          <div class="segmented" id="seg-agencia-modo">
+            <button class="active" data-v="pct">%</button>
+            <button data-v="eur">€</button>
+          </div>
+        </div>
+
+        <div class="field" id="agencia-valor-field">
+          <div class="field-label"><label id="agencia-valor-label">Comisión agencia (% s/ facturación)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-agencia-valor" value="17" step="0.1"><span class="unit" id="agencia-valor-unit">%</span></div>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat" style="flex:1;"><p class="k">Agencia de alquiler (con IVA)</p><p class="v" id="out-agencia">— €/mes</p></div>
+        </div>
+
+        <div class="field" style="margin-top:20px;">
+          <div class="field-label"><label>IBI (anual)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-ibi" value="300" step="10"><span class="unit">€</span></div>
+          <input type="range" id="r-ibi" min="0" max="3000" step="10" value="300">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Comunidad (anual)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-comunidad" value="400" step="10"><span class="unit">€</span></div>
+          <input type="range" id="r-comunidad" min="0" max="4000" step="10" value="400">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Seguros (anual)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-seguros" value="200" step="10"><span class="unit">€</span></div>
+          <input type="range" id="r-seguros" min="0" max="2000" step="10" value="200">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Mantenimiento (anual)</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-mantenimiento" value="300" step="10"><span class="unit">€</span></div>
+          <input type="range" id="r-mantenimiento" min="0" max="3000" step="10" value="300">
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Financiación</h2>
+
+        <div class="field">
+          <div class="field-label"><label>% de financiación</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-pctfin" value="80" step="1"><span class="unit">%</span></div>
+          <input type="range" id="r-pctfin" min="0" max="100" step="1" value="80">
+        </div>
+
+        <div class="stat-row">
+          <div class="stat" style="flex:1;"><p class="k">Importe del préstamo</p><p class="v" id="out-prestamopsi">— €</p></div>
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Tipo de interés</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-tipoint" value="3.2" step="0.05"><span class="unit">%</span></div>
+          <input type="range" id="r-tipoint" min="0.5" max="8" step="0.05" value="3.2">
+        </div>
+
+        <div class="field">
+          <div class="field-label"><label>Plazo</label></div>
+          <div class="input-combo"><input type="number" class="numfield" id="n-plazopsi" value="25" step="1"><span class="unit">años</span></div>
+          <input type="range" id="r-plazopsi" min="5" max="40" step="1" value="25">
+        </div>
+
+        <div class="stat-row">
+          <div class="stat" style="flex:1;"><p class="k">Cuota</p><p class="v" id="out-cuotapsi">— €/mes</p></div>
+        </div>
+      </div>
+
+      <div class="result-hero" id="psi-hero">
+        <p class="label">Cashflow mensual</p>
+        <p class="value" id="out-cashflow">— €/mes</p>
+        <p class="sub" id="psi-sub">—</p>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><p class="k">Rentabilidad bruta</p><p class="v" id="out-rentbruta">— %</p></div>
+        <div class="stat"><p class="k">Rentabilidad neta</p><p class="v" id="out-rentneta">— %</p></div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><p class="k">ROCE</p><p class="v" id="out-roce">— %</p></div>
+        <div class="stat"><p class="k">Desembolso total inicial</p><p class="v" id="out-desembolso">— €</p></div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat"><p class="k">Aportación fuera del PH</p><p class="v" id="out-aportacionph">— €</p></div>
+        <div class="stat"><p class="k">Provisión de fondos</p><p class="v" id="out-provisionfondos">— €</p></div>
+      </div>
+
+      <p class="note">Rentabilidad bruta = facturación anual ÷ coste total de la operación (compraventa + impuesto + notaría + comisión PSI con IVA + reforma). Rentabilidad neta = (cashflow mensual × 12 − IBI − seguros − mantenimiento) ÷ desembolso total inicial (precio de compra + gastos de gestión + impuesto + reforma). ROCE = cashflow anual ÷ aportación fuera del PH (retorno sobre el capital realmente desembolsado, teniendo en cuenta la financiación). Estimación orientativa: el ITP por comunidad es un tipo general aproximado y puede variar según bonificaciones.</p>
+    </section>
+  </main>
+
+  <nav class="tabbar">
+    <button class="tabbtn active" data-tab="growth">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 6"></polyline><polyline points="14 6 21 6 21 13"></polyline></svg>
+      Interés compuesto
+    </button>
+    <button class="tabbtn" data-tab="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"></path><path d="M5 9.5V21h14V9.5"></path></svg>
+      Hipoteca
+    </button>
+    <button class="tabbtn" data-tab="psi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
+      PSI
+    </button>
+  </nav>
+
+  <div class="overlay" id="config-overlay">
+    <div class="sheet">
+      <div class="sheet-header">
+        <h2>Mis oportunidades guardadas</h2>
+        <button class="sheet-close" id="btn-close-config">✕</button>
+      </div>
+
+      <div class="field">
+        <div class="field-label"><label>Nombre de esta oportunidad</label></div>
+        <input type="text" class="textfield" id="config-name-input" placeholder="Ej. Piso Calle Mayor 12">
+      </div>
+      <button class="btn-primary" id="btn-save-config">Guardar configuración actual</button>
+      <button class="btn-secondary" id="btn-import-config">Importar desde archivo</button>
+      <input type="file" id="config-import-input" accept="application/json" style="display:none;">
+
+      <div id="config-list"></div>
+      <p class="note">Se guarda en este dispositivo y navegador. Descarga cada oportunidad (⬇) para tener una copia de seguridad o pasarla a otro dispositivo.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('es-ES') + ' €';
+const fmt1 = n => n.toLocaleString('es-ES', {minimumFractionDigits:1, maximumFractionDigits:1});
+
+/* ---------------- TAB SWITCH ---------------- */
+const tabBtns = document.querySelectorAll('.tabbtn');
+const panels = document.querySelectorAll('.panel');
+const pageTitle = document.getElementById('pageTitle');
+const barG = document.getElementById('barG');
+const barH = document.getElementById('barH');
+const barP = document.getElementById('barP');
+const tabMeta = {
+  growth: 'Interés compuesto',
+  home: 'Cuota hipotecaria',
+  psi: 'PSI'
+};
+
+tabBtns.forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    tabBtns.forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const tab = btn.dataset.tab;
+    panels.forEach(p=>p.classList.remove('active'));
+    document.getElementById('panel-'+tab).classList.add('active');
+    pageTitle.textContent = tabMeta[tab];
+    barG.style.opacity = tab==='growth' ? 1 : 0.25;
+    barH.style.opacity = tab==='home' ? 1 : 0.25;
+    barP.style.opacity = tab==='psi' ? 1 : 0.25;
+  });
+});
+
+/* ---------------- Generic slider <-> number binder ---------------- */
+function bindPair(rangeId, numId, onChange){
+  const r = document.getElementById(rangeId);
+  const n = document.getElementById(numId);
+  r.addEventListener('input', ()=>{ n.value = r.value; onChange(); });
+  n.addEventListener('input', ()=>{
+    const val = parseFloat(n.value);
+    if(isNaN(val)) return;
+    if(val > parseFloat(r.max)) r.max = val;
+    if(val < parseFloat(r.min)) r.min = val;
+    r.value = val;
+    onChange();
+  });
+}
+
+/* ---------------- INTERÉS COMPUESTO ---------------- */
+const nCapital = document.getElementById('n-capital');
+const nAporte = document.getElementById('n-aporte');
+const nTae = document.getElementById('n-tae');
+const nAnios = document.getElementById('n-anios');
+const segCap = document.getElementById('seg-cap');
+let capFreq = 12;
+
+segCap.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    segCap.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    capFreq = parseInt(b.dataset.v);
+    calcGrowth();
+  });
+});
+
+function simulateGrowth(capital, aporte, taeScenario, anios, n){
+  const i = (taeScenario/100)/n;
+  const totalPeriods = anios*n;
+  const aportePorPeriodo = aporte*(12/n);
+  let saldo = capital;
+  let aportado = capital;
+  const series = [{saldo, aportado}];
+  const step = Math.max(1, Math.round(totalPeriods/40));
+  for(let t=1; t<=totalPeriods; t++){
+    saldo = saldo*(1+i) + aportePorPeriodo;
+    aportado += aportePorPeriodo;
+    if(t % step === 0 || t===totalPeriods) series.push({saldo, aportado});
+  }
+  return series;
+}
+
+function calcGrowth(){
+  const capital = parseFloat(nCapital.value) || 0;
+  const aporte = parseFloat(nAporte.value) || 0;
+  const tae = parseFloat(nTae.value) || 0;
+  const anios = parseInt(nAnios.value) || 1;
+  const n = capFreq;
+
+  const taeCons = Math.max(0, tae-3);
+  const taeOpt = tae+3;
+
+  const serieBase = simulateGrowth(capital, aporte, tae, anios, n);
+  const serieCons = simulateGrowth(capital, aporte, taeCons, anios, n);
+  const serieOpt = simulateGrowth(capital, aporte, taeOpt, anios, n);
+
+  const finalBase = serieBase[serieBase.length-1];
+  const finalCons = serieCons[serieCons.length-1];
+  const finalOpt = serieOpt[serieOpt.length-1];
+
+  document.getElementById('s-cons-tae').textContent = fmt1(taeCons)+' %';
+  document.getElementById('s-opt-tae').textContent = fmt1(taeOpt)+' %';
+  document.getElementById('s-cons-val').textContent = fmt(finalCons.saldo);
+  document.getElementById('s-opt-val').textContent = fmt(finalOpt.saldo);
+
+  document.getElementById('out-final').textContent = fmt(finalBase.saldo);
+  document.getElementById('out-sub').textContent = `${anios} años · capitalización ${n===12?'mensual':'anual'} · TAE ${fmt1(tae)}%`;
+  document.getElementById('out-aportado').textContent = fmt(finalBase.aportado);
+  document.getElementById('out-intereses').textContent = fmt(finalBase.saldo-finalBase.aportado);
+
+  drawGrowthChart(serieCons, serieBase, serieOpt);
+}
+
+function drawGrowthChart(cons, base, opt){
+  const svg = document.getElementById('chart-growth');
+  const W=320, H=150, pad=6;
+  const maxVal = Math.max(...opt.map(s=>s.saldo));
+  const scaleX = i => pad + (i/(base.length-1)) * (W-2*pad);
+  const scaleY = v => H - pad - (v/maxVal) * (H-2*pad);
+  const lineFor = (series,key) => series.map((s,i)=> `${scaleX(i)},${scaleY(s[key])}`).join(' ');
+  const areaForOpt = `${pad},${H-pad} ` + lineFor(opt,'saldo') + ` ${W-pad},${H-pad}`;
+
+  svg.innerHTML = `
+    <polygon points="${areaForOpt}" fill="var(--opt-soft)"></polygon>
+    <polyline points="${lineFor(base,'aportado')}" fill="none" stroke="var(--neutral-line)" stroke-width="1.5" stroke-dasharray="3 3"></polyline>
+    <polyline points="${lineFor(cons,'saldo')}" fill="none" stroke="var(--cons)" stroke-width="2" stroke-dasharray="5 3"></polyline>
+    <polyline points="${lineFor(opt,'saldo')}" fill="none" stroke="var(--opt)" stroke-width="2" stroke-dasharray="5 3"></polyline>
+    <polyline points="${lineFor(base,'saldo')}" fill="none" stroke="var(--growth)" stroke-width="2.5"></polyline>
+  `;
+}
+
+['r-capital','n-capital','r-aporte','n-aporte','r-tae','n-tae','r-anios','n-anios'].forEach((id,idx,arr)=>{});
+bindPair('r-capital','n-capital', calcGrowth);
+bindPair('r-aporte','n-aporte', calcGrowth);
+bindPair('r-tae','n-tae', calcGrowth);
+bindPair('r-anios','n-anios', calcGrowth);
+
+/* ---------------- HIPOTECA ---------------- */
+const nImporte = document.getElementById('n-importe');
+const nTin = document.getElementById('n-tin');
+const nPlazo = document.getElementById('n-plazo');
+const nRatio = document.getElementById('n-ratio');
+const nSalario = document.getElementById('n-salario');
+const nOtrosPrestamos = document.getElementById('n-otrosprestamos');
+const nOtrosIngresos = document.getElementById('n-otrosingresos');
+const nPctOtros = document.getElementById('n-pctotros');
+
+function calcMortgage(){
+  const importe = parseFloat(nImporte.value) || 0;
+  const tin = parseFloat(nTin.value) || 0;
+  const plazo = parseInt(nPlazo.value) || 1;
+
+  const i = (tin/100)/12;
+  const nMeses = plazo*12;
+  let cuota;
+  if(i === 0){
+    cuota = importe / nMeses;
+  } else {
+    cuota = importe * i * Math.pow(1+i, nMeses) / (Math.pow(1+i, nMeses) - 1);
+  }
+
+  const totalPagado = cuota * nMeses;
+  const totalIntereses = totalPagado - importe;
+
+  document.getElementById('out-cuota').textContent = fmt(cuota) + '/mes';
+  document.getElementById('out-sub2').textContent = `${nMeses} pagos mensuales a tipo fijo`;
+  document.getElementById('out-totalpagado').textContent = fmt(totalPagado);
+  document.getElementById('out-totalint').textContent = fmt(totalIntereses);
+
+  let saldoPendiente = importe;
+  let interesAcumulado = 0;
+  const points = [{pendiente: saldoPendiente, interes: 0}];
+  const step = Math.max(1, Math.round(nMeses/40));
+  for(let m=1; m<=nMeses; m++){
+    const interesMes = saldoPendiente * i;
+    const principalMes = cuota - interesMes;
+    saldoPendiente = Math.max(0, saldoPendiente - principalMes);
+    interesAcumulado += interesMes;
+    if(m % step === 0 || m===nMeses){
+      points.push({pendiente: saldoPendiente, interes: interesAcumulado});
+    }
+  }
+  drawMortgageChart(points, importe);
+  calcCapacity(cuota);
+}
+
+function drawMortgageChart(points, importe){
+  const svg = document.getElementById('chart-home');
+  const W=320, H=150, pad=6;
+  const maxVal = Math.max(importe, ...points.map(p=>p.interes));
+  const scaleX = i => pad + (i/(points.length-1)) * (W-2*pad);
+  const scaleY = v => H - pad - (v/maxVal) * (H-2*pad);
+
+  const pendienteLine = points.map((p,i)=>`${scaleX(i)},${scaleY(p.pendiente)}`).join(' ');
+  const interesLine = points.map((p,i)=>`${scaleX(i)},${scaleY(p.interes)}`).join(' ');
+  const pendienteArea = `${pad},${H-pad} ` + pendienteLine + ` ${W-pad},${H-pad}`;
+
+  svg.innerHTML = `
+    <polygon points="${pendienteArea}" fill="var(--home-soft)"></polygon>
+    <polyline points="${interesLine}" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="4 3"></polyline>
+    <polyline points="${pendienteLine}" fill="none" stroke="var(--home)" stroke-width="2.5"></polyline>
+  `;
+}
+
+function calcCapacity(cuota){
+  const ratio = parseFloat(nRatio.value) || 0;
+  const salario = parseFloat(nSalario.value) || 0;
+  const otrosPrestamos = parseFloat(nOtrosPrestamos.value) || 0;
+  const otrosIngresos = parseFloat(nOtrosIngresos.value) || 0;
+  const pctOtros = parseFloat(nPctOtros.value) || 0;
+
+  const ingresosComputables = salario + otrosIngresos*(pctOtros/100);
+  const capacidadMaxima = ingresosComputables*(ratio/100);
+  const disponible = Math.max(0, capacidadMaxima - otrosPrestamos);
+  const totalUsado = otrosPrestamos + cuota;
+  const fits = totalUsado <= capacidadMaxima + 0.01;
+
+  document.getElementById('out-ingresoscomp').textContent = fmt(ingresosComputables)+'/mes';
+  document.getElementById('out-comprometido').textContent = fmt(otrosPrestamos)+'/mes';
+  document.getElementById('out-capmax').textContent = fmt(capacidadMaxima)+'/mes';
+  document.getElementById('out-disponible').textContent = fmt(disponible)+'/mes';
+  document.getElementById('debtbar-limit-label').textContent = `Límite ${ratio}%`;
+
+  const verdictEl = document.getElementById('verdict');
+  if(ingresosComputables<=0){
+    verdictEl.textContent = 'Introduce tu salario u otros ingresos para calcular tu capacidad.';
+    verdictEl.className = 'verdict';
+  } else if(fits){
+    const margen = capacidadMaxima-totalUsado;
+    verdictEl.textContent = `Dentro de tu capacidad: te queda ${fmt(margen)}/mes de margen sobre el ${ratio}% de tus ingresos computables.`;
+    verdictEl.className = 'verdict ok';
+  } else {
+    const exceso = totalUsado-capacidadMaxima;
+    verdictEl.textContent = `Esta cuota supera tu capacidad en ${fmt(exceso)}/mes sobre el ${ratio}% de tus ingresos computables.`;
+    verdictEl.className = 'verdict bad';
+  }
+
+  const bar = document.getElementById('debtbar');
+  if(ingresosComputables<=0){
+    bar.innerHTML = '';
+  } else {
+    const pctComprometido = Math.min(100, otrosPrestamos/ingresosComputables*100);
+    const pctCuota = Math.min(100-pctComprometido, cuota/ingresosComputables*100);
+    bar.innerHTML = `
+      <div class="debtbar-seg debtbar-existing" style="left:0; width:${pctComprometido}%"></div>
+      <div class="debtbar-seg debtbar-new ${fits?'':'over'}" style="left:${pctComprometido}%; width:${pctCuota}%"></div>
+      <div class="debtbar-marker" style="left:${Math.min(100,ratio)}%"></div>
+    `;
+  }
+}
+
+bindPair('r-importe','n-importe', calcMortgage);
+bindPair('r-tin','n-tin', calcMortgage);
+bindPair('r-plazo','n-plazo', calcMortgage);
+bindPair('r-ratio','n-ratio', calcMortgage);
+bindPair('r-salario','n-salario', calcMortgage);
+bindPair('r-otrosprestamos','n-otrosprestamos', calcMortgage);
+bindPair('r-otrosingresos','n-otrosingresos', calcMortgage);
+bindPair('r-pctotros','n-pctotros', calcMortgage);
+
+/* ---------------- PSI ---------------- */
+const selPoblacion = document.getElementById('sel-poblacion');
+const nPreciocv = document.getElementById('n-preciocv');
+const nItp = document.getElementById('n-itp');
+const rItp = document.getElementById('r-itp');
+const nNotaria = document.getElementById('n-notaria');
+const nComisionPsiBox = document.getElementById('n-comision-psi');
+const nComisionInmo = document.getElementById('n-comision-inmo');
+const nComisionBroker = document.getElementById('n-comision-broker');
+const nReforma = document.getElementById('n-reforma');
+const nFacturacion = document.getElementById('n-facturacion');
+const nSuministros = document.getElementById('n-suministros');
+const nIbi = document.getElementById('n-ibi');
+const nComunidad = document.getElementById('n-comunidad');
+const nSeguros = document.getElementById('n-seguros');
+const nMantenimiento = document.getElementById('n-mantenimiento');
+const nPctfin = document.getElementById('n-pctfin');
+const nTipoint = document.getElementById('n-tipoint');
+const nPlazopsi = document.getElementById('n-plazopsi');
+
+function v(el){ const val = parseFloat(el.value); return isNaN(val) ? 0 : val; }
+
+const segAgencia = document.getElementById('seg-agencia');
+const agenciaSubfields = document.getElementById('agencia-subfields');
+const agenciaValorField = document.getElementById('agencia-valor-field');
+const segAgenciaModo = document.getElementById('seg-agencia-modo');
+const nAgenciaValor = document.getElementById('n-agencia-valor');
+const agenciaValorLabel = document.getElementById('agencia-valor-label');
+const agenciaValorUnit = document.getElementById('agencia-valor-unit');
+let agenciaActiva = true;
+let agenciaModo = 'pct';
+
+function toggleAgenciaFields(){
+  const show = agenciaActiva ? 'block' : 'none';
+  agenciaSubfields.style.display = show;
+  agenciaValorField.style.display = show;
+}
+toggleAgenciaFields();
+
+segAgencia.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    segAgencia.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    agenciaActiva = b.dataset.v === 'si';
+    toggleAgenciaFields();
+    calcPSI();
+  });
+});
+
+segAgenciaModo.querySelectorAll('button').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    segAgenciaModo.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    agenciaModo = b.dataset.v;
+    if(agenciaModo === 'pct'){
+      agenciaValorLabel.textContent = 'Comisión agencia (% s/ facturación)';
+      agenciaValorUnit.textContent = '%';
+    } else {
+      agenciaValorLabel.textContent = 'Comisión agencia (€, sin IVA)';
+      agenciaValorUnit.textContent = '€';
+    }
+    calcPSI();
+  });
+});
+nAgenciaValor.addEventListener('input', calcPSI);
+
+selPoblacion.addEventListener('change', ()=>{
+  const itpVal = parseFloat(selPoblacion.value);
+  nItp.value = itpVal;
+  rItp.value = itpVal;
+  calcPSI();
+});
+
+function calcPSI(){
+  const preciocv = v(nPreciocv);
+  const itp = v(nItp);
+  const notaria = v(nNotaria);
+  const psiSinIva = v(nComisionPsiBox);
+  const inmoSinIva = preciocv * (v(nComisionInmo)/100);
+  const brokerSinIva = v(nComisionBroker);
+  const comisionSinIvaTotal = psiSinIva + inmoSinIva + brokerSinIva;
+  const comisionConIva = comisionSinIvaTotal * 1.21;
+  const reforma = v(nReforma);
+  const facturacion = v(nFacturacion);
+  const suministros = v(nSuministros);
+  const pctFin = v(nPctfin);
+  const tipoInteres = v(nTipoint);
+  const plazo = v(nPlazopsi) || 1;
+
+  const impuesto = preciocv * (itp/100);
+  let agenciaAlquiler = 0;
+  if(agenciaActiva){
+    const agenciaValor = v(nAgenciaValor);
+    agenciaAlquiler = agenciaModo === 'pct'
+      ? facturacion * (agenciaValor/100) * 1.21
+      : agenciaValor * 1.21;
+  }
+  const importePrestamo = preciocv * (pctFin/100);
+
+  const i = (tipoInteres/100)/12;
+  const nMeses = plazo*12;
+  let cuota;
+  if(i === 0){
+    cuota = importePrestamo / nMeses;
+  } else {
+    cuota = importePrestamo * i * Math.pow(1+i, nMeses) / (Math.pow(1+i, nMeses) - 1);
+  }
+
+  const cashflow = facturacion - suministros - agenciaAlquiler - cuota;
+
+  const costeTotalOperacion = preciocv + impuesto + notaria + comisionConIva + reforma;
+  const rentabilidadBruta = costeTotalOperacion > 0 ? (facturacion*12)/costeTotalOperacion*100 : 0;
+
+  const ibi = v(nIbi);
+  const comunidad = v(nComunidad);
+  const seguros = v(nSeguros);
+  const mantenimiento = v(nMantenimiento);
+  const desembolsoTotalInicial = preciocv + notaria + impuesto + reforma;
+  const rentabilidadNeta = desembolsoTotalInicial > 0 ? ((cashflow*12) - ibi - seguros - mantenimiento) / desembolsoTotalInicial * 100 : 0;
+
+  const aportacionFueraPH = (preciocv + impuesto + comisionConIva + reforma) - importePrestamo;
+  const provisionFondos = (preciocv + impuesto + notaria) - importePrestamo;
+
+  const roce = aportacionFueraPH > 0 ? (cashflow*12)/aportacionFueraPH*100 : 0;
+
+  document.getElementById('hint-impuesto').textContent = `≈ ${fmt(impuesto)}`;
+  document.getElementById('out-comisionsiniva').textContent = fmt(comisionSinIvaTotal);
+  document.getElementById('out-comisionconiva').textContent = fmt(comisionConIva);
+  document.getElementById('out-agencia').textContent = agenciaActiva ? (fmt(agenciaAlquiler) + '/mes') : '—';
+  document.getElementById('out-prestamopsi').textContent = fmt(importePrestamo);
+  document.getElementById('out-cuotapsi').textContent = fmt(cuota) + '/mes';
+
+  document.getElementById('out-cashflow').textContent = fmt(cashflow) + '/mes';
+  document.getElementById('psi-sub').textContent = `Facturación − suministros − agencia − cuota`;
+  const hero = document.getElementById('psi-hero');
+  hero.classList.toggle('negative', cashflow < 0);
+
+  document.getElementById('out-rentbruta').textContent = fmt1(rentabilidadBruta) + ' %';
+  document.getElementById('out-rentneta').textContent = fmt1(rentabilidadNeta) + ' %';
+  document.getElementById('out-roce').textContent = fmt1(roce) + ' %';
+  document.getElementById('out-desembolso').textContent = fmt(desembolsoTotalInicial);
+  document.getElementById('out-aportacionph').textContent = fmt(aportacionFueraPH);
+  document.getElementById('out-provisionfondos').textContent = fmt(provisionFondos);
+}
+
+bindPair('r-preciocv','n-preciocv', calcPSI);
+bindPair('r-itp','n-itp', calcPSI);
+bindPair('r-notaria','n-notaria', calcPSI);
+[nComisionPsiBox, nComisionInmo, nComisionBroker].forEach(el => el.addEventListener('input', calcPSI));
+bindPair('r-reforma','n-reforma', calcPSI);
+bindPair('r-facturacion','n-facturacion', calcPSI);
+bindPair('r-suministros','n-suministros', calcPSI);
+bindPair('r-ibi','n-ibi', calcPSI);
+bindPair('r-comunidad','n-comunidad', calcPSI);
+bindPair('r-seguros','n-seguros', calcPSI);
+bindPair('r-mantenimiento','n-mantenimiento', calcPSI);
+bindPair('r-pctfin','n-pctfin', calcPSI);
+bindPair('r-tipoint','n-tipoint', calcPSI);
+bindPair('r-plazopsi','n-plazopsi', calcPSI);
+
+calcGrowth();
+calcMortgage();
+calcPSI();
+
+/* ---------------- CONFIGURACIONES GUARDADAS ---------------- */
+const ALL_FIELD_IDS = [
+  'n-capital','n-aporte','n-tae','n-anios',
+  'n-importe','n-tin','n-plazo','n-ratio','n-salario','n-otrosprestamos','n-otrosingresos','n-pctotros',
+  'n-preciocv','n-itp','n-notaria','n-comision-psi','n-comision-inmo','n-comision-broker','n-reforma',
+  'n-facturacion','n-suministros','n-ibi','n-comunidad','n-seguros','n-mantenimiento',
+  'n-pctfin','n-tipoint','n-plazopsi','n-agencia-valor'
+];
+const STORAGE_KEY = 'calculadora_financiera_oportunidades_v1';
+
+function collectSnapshot(){
+  const data = {};
+  ALL_FIELD_IDS.forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) data[id] = el.value;
+  });
+  data['sel-poblacion'] = selPoblacion.value;
+  data['__capFreq'] = capFreq;
+  data['__agenciaActiva'] = agenciaActiva;
+  data['__agenciaModo'] = agenciaModo;
+  return data;
+}
+
+function applySnapshot(data){
+  ALL_FIELD_IDS.forEach(id=>{
+    if(data[id] !== undefined){
+      const el = document.getElementById(id);
+      if(el){ el.value = data[id]; el.dispatchEvent(new Event('input', {bubbles:true})); }
+    }
+  });
+  if(data['sel-poblacion'] !== undefined){
+    selPoblacion.value = data['sel-poblacion'];
+  }
+  if(data['__capFreq'] !== undefined){
+    capFreq = data['__capFreq'];
+    segCap.querySelectorAll('button').forEach(b=> b.classList.toggle('active', parseInt(b.dataset.v)===capFreq));
+  }
+  if(data['__agenciaActiva'] !== undefined){
+    agenciaActiva = data['__agenciaActiva'];
+    segAgencia.querySelectorAll('button').forEach(b=> b.classList.toggle('active', (b.dataset.v==='si')===agenciaActiva));
+    toggleAgenciaFields();
+  }
+  if(data['__agenciaModo'] !== undefined){
+    agenciaModo = data['__agenciaModo'];
+    segAgenciaModo.querySelectorAll('button').forEach(b=> b.classList.toggle('active', b.dataset.v===agenciaModo));
+    if(agenciaModo === 'pct'){
+      agenciaValorLabel.textContent = 'Comisión agencia (% s/ facturación)';
+      agenciaValorUnit.textContent = '%';
+    } else {
+      agenciaValorLabel.textContent = 'Comisión agencia (€, sin IVA)';
+      agenciaValorUnit.textContent = '€';
+    }
+  }
+  calcGrowth();
+  calcMortgage();
+  calcPSI();
+}
+
+function loadConfigs(){
+  try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; }
+  catch(e){ return []; }
+}
+function saveConfigs(list){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(list)); return true; }
+  catch(e){ return false; }
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str;
+  return d.innerHTML;
+}
+
+function renderConfigList(){
+  const list = loadConfigs();
+  const container = document.getElementById('config-list');
+  if(list.length === 0){
+    container.innerHTML = '<p class="note">Todavía no has guardado ninguna oportunidad.</p>';
+    return;
+  }
+  container.innerHTML = list.map((cfg, idx)=>`
+    <div class="config-item">
+      <div>
+        <p class="name">${escapeHtml(cfg.name)}</p>
+        <p class="date">${new Date(cfg.savedAt).toLocaleString('es-ES')}</p>
+      </div>
+      <div class="config-actions">
+        <button data-action="load" data-idx="${idx}">Cargar</button>
+        <button data-action="download" data-idx="${idx}">⬇</button>
+        <button data-action="delete" data-idx="${idx}" class="danger">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function downloadConfig(cfg){
+  const blob = new Blob([JSON.stringify(cfg, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (cfg.name || 'oportunidad').replace(/[^a-z0-9áéíóúñü_\- ]/gi,'').trim().replace(/\s+/g,'_') || 'oportunidad';
+  a.href = url;
+  a.download = `${safeName}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('config-list').addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const idx = parseInt(btn.dataset.idx);
+  const list = loadConfigs();
+  const cfg = list[idx];
+  if(!cfg) return;
+  if(btn.dataset.action === 'load'){
+    applySnapshot(cfg.data);
+    document.getElementById('config-overlay').classList.remove('active');
+  } else if(btn.dataset.action === 'download'){
+    downloadConfig(cfg);
+  } else if(btn.dataset.action === 'delete'){
+    if(confirm(`¿Eliminar "${cfg.name}"?`)){
+      list.splice(idx, 1);
+      saveConfigs(list);
+      renderConfigList();
+    }
+  }
+});
+
+document.getElementById('btn-save-config').addEventListener('click', ()=>{
+  const nameInput = document.getElementById('config-name-input');
+  const name = nameInput.value.trim();
+  if(!name){ nameInput.focus(); return; }
+  const list = loadConfigs();
+  list.unshift({ name, savedAt: Date.now(), data: collectSnapshot() });
+  const ok = saveConfigs(list);
+  if(ok){
+    nameInput.value = '';
+    renderConfigList();
+  } else {
+    alert('No se ha podido guardar en este navegador. Prueba a descargar el archivo de la operación como copia de seguridad.');
+  }
+});
+
+document.getElementById('btn-import-config').addEventListener('click', ()=>{
+  document.getElementById('config-import-input').click();
+});
+document.getElementById('config-import-input').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const cfg = JSON.parse(reader.result);
+      if(!cfg.data) throw new Error('formato inválido');
+      const list = loadConfigs();
+      list.unshift({ name: cfg.name || 'Importada', savedAt: Date.now(), data: cfg.data });
+      saveConfigs(list);
+      renderConfigList();
+    }catch(err){
+      alert('El archivo no tiene un formato válido.');
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+document.getElementById('btn-open-config').addEventListener('click', ()=>{
+  renderConfigList();
+  document.getElementById('config-overlay').classList.add('active');
+});
+document.getElementById('btn-close-config').addEventListener('click', ()=>{
+  document.getElementById('config-overlay').classList.remove('active');
+});
+document.getElementById('config-overlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'config-overlay') document.getElementById('config-overlay').classList.remove('active');
+});
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
